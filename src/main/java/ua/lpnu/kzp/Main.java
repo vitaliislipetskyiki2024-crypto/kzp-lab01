@@ -92,6 +92,18 @@ public class Main {
             System.out.printf("Загальний дохiд: %.2f грн%n", totalRevenue);
             System.out.printf("Середня цiна квитка: %.2f грн%n", averageTicketPrice);
             System.out.println("Максимальна кiлькiсть проданих квиткiв: " + maxSold);
+            try {
+    FileReport.save(
+            Path.of("report.txt"),
+            validRecords,
+            totalRevenue,
+            averageTicketPrice,
+            maxSold
+    );
+    System.out.println("Звiт збережено у файл: report.txt");
+} catch (IOException e) {
+    System.out.println("Помилка запису звiту: " + e.getMessage());
+}
 
         } catch (IOException e) {
             System.out.println("Помилка читання файлу: " + inputPath);
