@@ -3,7 +3,7 @@ package ua.lpnu.kzp;
 import java.util.Locale;
 
 /**
- * Незмінний набір підсумкових показників продажів.
+ * 
  *
  * @param validRecords       кількість правильних записів
  * @param totalRevenue       загальний дохід
@@ -17,7 +17,7 @@ public record TicketSales(
         int maxSold
 ) {
     /**
-     * Компактний конструктор для валідації підсумкових показників.
+     * 
      */
     public TicketSales {
         if (validRecords < 0 || maxSold < 0) {

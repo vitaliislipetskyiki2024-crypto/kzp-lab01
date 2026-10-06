@@ -4,27 +4,29 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Описує незмінний запис про кіносеанс.
+ * Абстрактний базовий клас сеансу в кінотеатрі.
  */
-public final class Screening {
+public abstract class Screening {
 
     private final String film;
     private final int hall;
     private final double ticketPrice;
     private final int sold;
     private final int durationMin;
+    private final ScreeningKind kind;
 
     /**
-     * Конструктор, що створює об'єкт сеансу та перевіряє його інваріанти.
+     * Конструктор для базових полів сеансу з повною валідацією даних.
      *
-     * @param film        назва фільму (не порожня)
-     * @param hall        номер залу (> 0)
-     * @param ticketPrice ціна квитка (>= 0, скінченне число)
-     * @param sold        кількість проданих квитків (>= 0)
-     * @param durationMin тривалість у хвилинах (> 0)
-     * @throws IllegalArgumentException якщо параметри порушують інваріанти
+     * @param film        назва фільму
+     * @param hall        номер залу
+     * @param ticketPrice ціна квитка
+     * @param sold        кількість проданих квитків
+     * @param durationMin тривалість у хвилинах
+     * @param kind        категорія сеансу (enum)
+     * @throws IllegalArgumentException якщо передано некоректні значення
      */
-    public Screening(String film, int hall, double ticketPrice, int sold, int durationMin) {
+    protected Screening(String film, int hall, double ticketPrice, int sold, int durationMin, ScreeningKind kind) {
         this.film = Objects.requireNonNull(film, "Назва фільму не може бути null");
         if (film.isBlank()) {
             throw new IllegalArgumentException("Назва фільму не може бути порожньою");
@@ -41,6 +43,7 @@ public final class Screening {
         if (durationMin <= 0) {
             throw new IllegalArgumentException("Тривалість має бути додатною");
         }
+        this.kind = Objects.requireNonNull(kind, "Категорія сеансу не може бути null");
 
         this.hall = hall;
         this.ticketPrice = ticketPrice;
@@ -49,18 +52,18 @@ public final class Screening {
     }
 
     /**
-     * Статичний фабричний метод для створення сутності з CSV-рядка.
+     * Фабричний метод для створення об'єкта підкласу Screening із CSV-рядка.
      *
-     * @param line рядок у форматі "film;hall;ticketPrice;sold;durationMin"
-     * @return об'єкт Screening
-     * @throws IllegalArgumentException якщо формат або числа некоректні
+     * @param line рядок у формате CSV (5 або 6 полів через крапку з комою)
+     * @return екземпляр RegularScreening або PremiumScreening
+     * @throws IllegalArgumentException якщо формат рядка чи дані некоректні
      */
     public static Screening fromCsv(String line) {
         Objects.requireNonNull(line, "Рядок не може бути null");
         String[] fields = line.split(";", -1);
 
-        if (fields.length != 5) {
-            throw new IllegalArgumentException("Очікується рівно 5 полів");
+        if (fields.length < 5 || fields.length > 6) {
+            throw new IllegalArgumentException("Очікується 5 (звичайний) або 6 (преміум) полів");
         }
 
         try {
@@ -70,7 +73,12 @@ public final class Screening {
             int sold = Integer.parseInt(fields[3].trim());
             int durationMin = Integer.parseInt(fields[4].trim());
 
-            return new Screening(film, hall, ticketPrice, sold, durationMin);
+            if (fields.length == 6) {
+                double vipSurcharge = Double.parseDouble(fields[5].trim());
+                return new PremiumScreening(film, hall, ticketPrice, sold, durationMin, vipSurcharge);
+            }
+
+            return new RegularScreening(film, hall, ticketPrice, sold, durationMin);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Числове поле має помилковий формат", e);
         }
@@ -96,19 +104,39 @@ public final class Screening {
         return durationMin;
     }
 
+    public ScreeningKind getKind() {
+        return kind;
+    }
+
     /**
-     * Обчислює дохід від даного сеансу.
+     * Поліморфний метод обчислення виторгу сеансу.
+     * Реалізується у конкретних підкласах.
      *
-     * @return валова выручка з квитків
+     * @return сума виторгу в гривнях
      */
-    public double calculateRevenue() {
-        return ticketPrice * sold;
+    public abstract double calculateRevenue();
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        Screening screening = (Screening) other;
+        return hall == screening.hall && film.equals(screening.film);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClass(), film, hall);
     }
 
     @Override
     public String toString() {
         return String.format(Locale.ROOT,
-                "%s (Зал %d): ціна %.2f грн, продано %d, тривалість %d хв",
-                film, hall, ticketPrice, sold, durationMin);
+                "[%s] %s (Зал %d): ціна %.2f грн, продано %d, тривалість %d хв, виторг %.2f грн",
+                kind.label(), film, hall, ticketPrice, sold, durationMin, calculateRevenue());
     }
 }

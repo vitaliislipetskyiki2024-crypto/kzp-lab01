@@ -21,17 +21,17 @@ class ScreeningTest {
     @Test
     void constructorRejectsEmptyFilm() {
         assertThrows(IllegalArgumentException.class,
-                () -> new Screening("   ", 1, 100.0, 10, 120));
+                () -> new RegularScreening("   ", 1, 100.0, 10, 120));
     }
 
     @Test
     void constructorRejectsNegativeValues() {
         assertThrows(IllegalArgumentException.class,
-                () -> new Screening("Фільм", 0, 100.0, 10, 120));
+                () -> new RegularScreening("Фільм", 0, 100.0, 10, 120));
         assertThrows(IllegalArgumentException.class,
-                () -> new Screening("Фільм", 1, -10.0, 10, 120));
+                () -> new RegularScreening("Фільм", 1, -10.0, 10, 120));
         assertThrows(IllegalArgumentException.class,
-                () -> new Screening("Фільм", 1, 100.0, -1, 120));
+                () -> new RegularScreening("Фільм", 1, 100.0, -1, 120));
     }
 
     @Test
