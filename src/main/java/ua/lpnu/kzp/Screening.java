@@ -139,4 +139,12 @@ public abstract class Screening {
                 "[%s] %s (Зал %d): ціна %.2f грн, продано %d, тривалість %d хв, виторг %.2f грн",
                 kind.label(), film, hall, ticketPrice, sold, durationMin, calculateRevenue());
     }
+    /**
+     * Захист від Finalizer-атак для SpotBugs (CT_CONSTRUCTOR_THROW).
+     */
+    @SuppressWarnings("deprecation")
+    @Override
+    protected final void finalize() {
+        // Метод finalize зроблено final, щоб запобігти атам через частково ініціалізований об'єкт
+    }
 }
