@@ -1,0 +1,2 @@
+[console_scripts]
+kzp-lab06 = kzp_lab06.cli:main
